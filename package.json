@@ -1,5 +1,5 @@
 {
-  "name": "",
+  "name": "ai-widget",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
@@ -9,6 +9,9 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^5.16.6"
+    "@types/markdown-it": "^14.1.2",
+    "astro": "^5.16.6",
+    "markdown-it": "^14.1.0",
+    "openai": "^6.15.0"
   }
 }
