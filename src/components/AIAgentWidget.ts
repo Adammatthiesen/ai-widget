@@ -65,6 +65,22 @@ class AIAgentWidget extends HTMLElement {
       const stored = localStorage.getItem(this.storageKey);
       if (stored) {
         const parsed = JSON.parse(stored);
+        const timestamp = parsed.timestamp || 0;
+        const now = Date.now();
+        const eightHours = 8 * 60 * 60 * 1000; // 8 hours in milliseconds
+
+        // Check if storage has expired (older than 8 hours)
+        if (now - timestamp > eightHours) {
+          // Clear expired storage
+          localStorage.removeItem(this.storageKey);
+          return {
+            messages: [],
+            isLoading: false,
+            error: null,
+            isOpen: false,
+          };
+        }
+
         return {
           messages: parsed.messages || [],
           isLoading: false,
@@ -85,13 +101,16 @@ class AIAgentWidget extends HTMLElement {
   }
 
   /**
-   * Save chat history to localStorage
+   * Save chat history to localStorage with timestamp
    */
   private saveStateToStorage(): void {
     try {
       localStorage.setItem(
         this.storageKey,
-        JSON.stringify({ messages: this.state.messages })
+        JSON.stringify({
+          messages: this.state.messages,
+          timestamp: Date.now()
+        })
       );
     } catch (error) {
       console.warn('Failed to save chat history:', error);
@@ -110,12 +129,27 @@ class AIAgentWidget extends HTMLElement {
     inputs.forEach((element) => {
       const el = element as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
       const id = el.id || el.name;
+      const tagName = el.tagName.toLowerCase();
 
-      if (id && el.type !== 'password' && el.type !== 'hidden') {
+      // Skip password and hidden inputs
+      if (el instanceof HTMLInputElement && (el.type === 'password' || el.type === 'hidden')) {
+        return;
+      }
+
+      if (id) {
+        let fieldType: string;
+        if (tagName === 'textarea') {
+          fieldType = 'textarea';
+        } else if (tagName === 'select') {
+          fieldType = 'select';
+        } else {
+          fieldType = (el as HTMLInputElement).type || 'text';
+        }
+
         fields.push({
           id: id,
           name: el.name || el.id,
-          type: el.tagName.toLowerCase() === 'textarea' ? 'textarea' : el.type || 'text',
+          type: fieldType,
           value: el.value || ''
         });
       }
@@ -181,28 +215,54 @@ class AIAgentWidget extends HTMLElement {
 Available form fields:
 ${fieldList}
 
-You can:
-1. READ field content using this exact format:
-   [READ_FIELD:field-id]
-   This will be replaced with the current field value automatically.
-   
-2. WRITE to fields using this exact format:
-   [WRITE_FIELD:field-id]
-   content to write
-   [/WRITE_FIELD]
+IMPORTANT: To write to fields, you MUST use the exact syntax below. Do not just describe what you will do - actually output the commands.
 
-When interacting with fields:
-- Use the exact field ID from the list above
-- You can read multiple fields by using multiple [READ_FIELD:...] tags
-- You can write to multiple fields in one response
-- Always confirm what you're reading or writing
+FIELD WRITE SYNTAX (use this exact format):
+[WRITE_FIELD:field-id]
+content to write here
+[/WRITE_FIELD]
 
-Examples:
-- Reading: "Let me check what's in the content field: [READ_FIELD:content]"
-- Writing: "I'll update the title field for you:
+The write commands will be hidden from the user automatically, so include them in your response.
+
+EXAMPLES OF CORRECT USAGE:
+
+User: "Write a blog post about technology in 2025"
+Assistant: "I'll create a blog post for you about technology in 2025.
+
 [WRITE_FIELD:title]
-Amazing New Blog Post
-[/WRITE_FIELD]"`;
+Technology in 2025: Trends and Predictions
+[/WRITE_FIELD]
+
+[WRITE_FIELD:author]
+AI Assistant
+[/WRITE_FIELD]
+
+[WRITE_FIELD:category]
+technology
+[/WRITE_FIELD]
+
+[WRITE_FIELD:excerpt]
+Explore the cutting-edge innovations shaping our world in 2025—from quantum computing to autonomous infrastructure.
+[/WRITE_FIELD]
+
+[WRITE_FIELD:content]
+**Technology in 2025: Trends and Predictions**
+
+The year 2025 marks a pivotal moment in the evolution of technology...
+[/WRITE_FIELD]
+
+[WRITE_FIELD:tags]
+technology, 2025, AI, innovation, future tech
+[/WRITE_FIELD]
+
+I've filled in all the blog post fields with relevant content about technology in 2025."
+
+RULES:
+- For select fields, use ONLY the exact option values from the list above
+- Always include the [WRITE_FIELD:...] and [/WRITE_FIELD] tags
+- Put the actual content between the tags
+- You can write to multiple fields in one response
+- The commands are automatically hidden from the user`;
   }
 
   /**
@@ -734,11 +794,20 @@ Amazing New Blog Post
         }
 
         .field-notification {
+          display: flex;
+          align-items: center;
+          gap: 8px;
           padding: 10px 12px;
           border-radius: var(--radius-md);
           font-size: 13px;
           margin: 8px 0;
           animation: slideIn 0.3s ease-out;
+        }
+
+        .field-notification svg {
+          width: 18px;
+          height: 18px;
+          flex-shrink: 0;
         }
 
         .field-notification.success {
@@ -809,6 +878,102 @@ Amazing New Blog Post
           border-color: var(--danger-base);
           color: var(--danger-vibrant);
         }
+
+        .confirm-dialog {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          backdrop-filter: blur(4px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10000;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.2s;
+        }
+
+        .confirm-dialog.show {
+          opacity: 1;
+          pointer-events: all;
+        }
+
+        .confirm-content {
+          background: var(--background-step-1);
+          border: 1px solid var(--border);
+          border-radius: var(--radius-lg);
+          padding: 24px;
+          max-width: 400px;
+          box-shadow: 0 8px 32px var(--shadow);
+          transform: scale(0.95);
+          transition: transform 0.2s;
+        }
+
+        .confirm-dialog.show .confirm-content {
+          transform: scale(1);
+        }
+
+        .confirm-title {
+          font-size: 18px;
+          font-weight: 600;
+          color: var(--text-normal);
+          margin-bottom: 12px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .confirm-title svg {
+          width: 24px;
+          height: 24px;
+          color: var(--danger-base);
+        }
+
+        .confirm-message {
+          font-size: 14px;
+          color: var(--text-dimmed);
+          line-height: 1.5;
+          margin-bottom: 20px;
+        }
+
+        .confirm-actions {
+          display: flex;
+          gap: 12px;
+          justify-content: flex-end;
+        }
+
+        .confirm-btn {
+          padding: 8px 20px;
+          border-radius: var(--radius-md);
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          border: 1px solid var(--border);
+          transition: all 0.2s;
+        }
+
+        .confirm-btn.cancel {
+          background: var(--background-step-2);
+          color: var(--text-normal);
+        }
+
+        .confirm-btn.cancel:hover {
+          background: var(--background-step-3);
+        }
+
+        .confirm-btn.confirm {
+          background: var(--danger-base);
+          color: var(--text-inverted);
+          border-color: var(--danger-base);
+        }
+
+        .confirm-btn.confirm:hover {
+          background: var(--danger-vibrant);
+          border-color: var(--danger-vibrant);
+        }
       </style>
 
       <div class="widget-container">
@@ -835,6 +1000,25 @@ Amazing New Blog Post
               rows="1"
             ></textarea>
             <button id="send-btn">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirmation Dialog -->
+      <div class="confirm-dialog" id="confirm-dialog">
+        <div class="confirm-content">
+          <div class="confirm-title">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+            </svg>
+            Clear Chat History?
+          </div>
+          <div class="confirm-message">
+            This will permanently delete all your conversation history. This action cannot be undone.
+          </div>
+          <div class="confirm-actions">
+            <button class="confirm-btn cancel" id="confirm-cancel">Cancel</button>
+            <button class="confirm-btn confirm" id="confirm-ok">Clear History</button>
           </div>
         </div>
       </div>
@@ -879,8 +1063,23 @@ Amazing New Blog Post
 
     // Clear history button
     this.shadow.getElementById('clear-btn')?.addEventListener('click', () => {
-      if (confirm('Clear all chat history?')) {
-        this.clearHistory();
+      this.showConfirmDialog();
+    });
+
+    // Confirm dialog buttons
+    this.shadow.getElementById('confirm-cancel')?.addEventListener('click', () => {
+      this.hideConfirmDialog();
+    });
+
+    this.shadow.getElementById('confirm-ok')?.addEventListener('click', () => {
+      this.clearHistory();
+      this.hideConfirmDialog();
+    });
+
+    // Close dialog on backdrop click
+    this.shadow.getElementById('confirm-dialog')?.addEventListener('click', (e) => {
+      if (e.target === this.shadow.getElementById('confirm-dialog')) {
+        this.hideConfirmDialog();
       }
     });
   }
@@ -1113,7 +1312,24 @@ Amazing New Blog Post
       }
 
       // Process any field write commands in the response
-      this.processFieldCommands(assistantMessage.content);
+      const writes = this.processFieldCommands(assistantMessage.content);
+
+      // Remove field commands from displayed content
+      let displayContent = this.removeFieldCommands(assistantMessage.content);
+
+      // Add completion summary if fields were written and content is empty/minimal
+      if (writes.length > 0 && displayContent.trim().length < 50) {
+        const successWrites = writes.filter(w => w.success);
+        if (successWrites.length > 0) {
+          const fieldNames = successWrites.map(w => w.field).join(', ');
+          displayContent = `✓ **Request completed!** I've successfully filled in the following fields: ${fieldNames}.`;
+        }
+      }
+
+      // Update the message content to the cleaned version for storage
+      assistantMessage.content = displayContent;
+
+      contentDiv.innerHTML = this.md.render(displayContent);
 
       // Save final state
       this.saveStateToStorage();
@@ -1125,9 +1341,17 @@ Amazing New Blog Post
   }
 
   /**
+   * Remove field commands from content for display
+   */
+  private removeFieldCommands(content: string): string {
+    // Remove WRITE_FIELD commands but keep any surrounding text
+    return content.replace(/\[WRITE_FIELD:([^\]]+)\]\s*([\s\S]*?)\s*\[\/WRITE_FIELD\]/g, '');
+  }
+
+  /**
    * Process field write commands in AI response
    */
-  private processFieldCommands(content: string): void {
+  private processFieldCommands(content: string): Array<{ field: string; content: string; success: boolean }> {
     const writeFieldRegex = /\[WRITE_FIELD:([^\]]+)\]\s*([\s\S]*?)\s*\[\/WRITE_FIELD\]/g;
     let match;
     const writes: Array<{ field: string; content: string; success: boolean }> = [];
@@ -1147,17 +1371,19 @@ Amazing New Blog Post
 
       if (successWrites.length > 0) {
         this.showFieldWriteNotification(
-          `✅ Updated ${successWrites.length} field${successWrites.length > 1 ? 's' : ''}: ${successWrites.map(w => w.field).join(', ')}`
+          `Updated ${successWrites.length} field${successWrites.length > 1 ? 's' : ''}: ${successWrites.map(w => w.field).join(', ')}`
         );
       }
 
       if (failedWrites.length > 0) {
         this.showFieldWriteNotification(
-          `⚠️ Failed to update: ${failedWrites.map(w => w.field).join(', ')}`,
+          `Failed to update: ${failedWrites.map(w => w.field).join(', ')}`,
           true
         );
       }
     }
+
+    return writes;
   }
 
   /**
@@ -1168,7 +1394,22 @@ Amazing New Blog Post
 
     const notification = document.createElement('div');
     notification.className = isError ? 'field-notification error' : 'field-notification success';
-    notification.textContent = message;
+
+    // Add appropriate icon
+    const icon = document.createElement('span');
+    icon.innerHTML = isError
+      ? `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+           <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+         </svg>`
+      : `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+         </svg>`;
+
+    const messageSpan = document.createElement('span');
+    messageSpan.textContent = message;
+
+    notification.appendChild(icon);
+    notification.appendChild(messageSpan);
     this.messagesContainer.appendChild(notification);
     this.scrollToBottom();
 
@@ -1210,6 +1451,27 @@ Amazing New Blog Post
     this.state.messages = [];
     this.saveStateToStorage();
     this.renderMessages();
+  }
+
+  /**
+   * Show confirmation dialog
+   */
+  private showConfirmDialog(): void {
+    const dialog = this.shadow.getElementById('confirm-dialog');
+    if (dialog) {
+      // Use setTimeout to ensure the transition animation works
+      setTimeout(() => dialog.classList.add('show'), 10);
+    }
+  }
+
+  /**
+   * Hide confirmation dialog
+   */
+  private hideConfirmDialog(): void {
+    const dialog = this.shadow.getElementById('confirm-dialog');
+    if (dialog) {
+      dialog.classList.remove('show');
+    }
   }
 
   /**

@@ -103,6 +103,7 @@ export const POST: APIRoute = async ({ request }) => {
             top_p: topP,
             frequency_penalty: frequencyPenalty,
             presence_penalty: presencePenalty,
+            tool_choice: 'auto'
         });
 
         // Create a ReadableStream for Server-Sent Events
