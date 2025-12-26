@@ -1494,4 +1494,6 @@ RULES:
 }
 
 // Register the custom element
-customElements.define('ai-agent-widget', AIAgentWidget);
+if (!customElements.get('ai-agent-widget')) {
+  customElements.define('ai-agent-widget', AIAgentWidget);
+}

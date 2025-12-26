@@ -1,58 +1,56 @@
 ---
-import DemoNav from '../components/DemoNav.astro';
-import '../studiocms-ui-styles/global.css';
+import AIAgentWidget from "../components/AIAgentWidget.astro";
+import DemoNav from "../components/DemoNav.astro";
+import "../studiocms-ui-styles/global.css";
 
 interface Props {
-  title: string;
-  description?: string;
+    title: string;
+    description?: string;
 }
 
 const { title, description } = Astro.props;
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
-    {description && <meta name="description" content={description} />}
-    <style>
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        background: var(--background-base);
-        color: var(--text-normal);
-        min-height: 100vh;
-        padding: 0;
-        margin: 0;
-      }
+    <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{title}</title>
+        {description && <meta name="description" content={description} />}
+        <style>
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    Oxygen, Ubuntu, Cantarell, sans-serif;
+                background: var(--background-base);
+                color: var(--text-normal);
+                min-height: 100vh;
+                padding: 0;
+                margin: 0;
+            }
 
-      .demo-container {
-        padding: 20px;
-        max-width: 1200px;
-        margin: 0 auto;
-      }
+            .demo-container {
+                padding: 20px;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
 
-      main {
-        padding-top: 80px;
-      }
-    </style>
-  </head>
-  <body>
-    <DemoNav slot="nav" />
-    <main>
-      <div class="demo-container">
-        <slot />
-      </div>
-    </main>
+            main {
+                padding-top: 80px;
+            }
+        </style>
+    </head>
+    <body>
+        <DemoNav slot="nav" />
+        <main>
+            <div class="demo-container">
+                <slot />
+            </div>
+        </main>
 
-    <!-- AI Widget -->
-    <ai-agent-widget></ai-agent-widget>
-
-    <script>
-      import '../components/AIAgentWidget.ts';
-    </script>
-  </body>
+        <AIAgentWidget />
+    </body>
 </html>
