@@ -407,6 +407,7 @@ RULES:
           background: var(--background-step-3);
           color: var(--text-normal);
           border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+          border-bottom: 1px solid var(--border);
           font-weight: 600;
           font-size: 16px;
           display: flex;
