@@ -2,6 +2,7 @@
 import AIAgentWidget from "../components/AIAgentWidget.astro";
 import DemoNav from "../components/DemoNav.astro";
 import "../studiocms-ui-styles/global.css";
+import "../studiocms-ui-styles/resets.css";
 
 interface Props {
     title: string;
@@ -12,7 +13,7 @@ const { title, description } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
     <head>
         <meta charset="utf-8" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

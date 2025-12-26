@@ -384,7 +384,6 @@ RULES:
           bottom: 80px;
           right: 0;
           width: 500px;
-          height: 600px;
           display: flex;
           flex-direction: column;
           border: 1px solid var(--border);
@@ -405,8 +404,8 @@ RULES:
 
         .chat-header {
           padding: 8px 20px;
-          background: var(--primary-base);
-          color: var(--text-inverted);
+          background: var(--background-step-3);
+          color: var(--text-normal);
           border-radius: var(--radius-lg) var(--radius-lg) 0 0;
           font-weight: 600;
           font-size: 16px;
@@ -417,7 +416,7 @@ RULES:
 
         .messages-container {
           flex: 1;
-          overflow-y: auto;
+          overflow-y: scroll;
           padding: 16px;
           display: flex;
           flex-direction: column;
@@ -427,8 +426,48 @@ RULES:
         .message {
           display: flex;
           flex-direction: column;
-          max-width: 80%;
+          max-width: 100%;
           animation: slideIn 0.3s ease-out;
+        }
+
+        .message .message-content {
+          display: flex;
+        }
+
+        .message .message-content-inner {
+          max-height: 500px;
+          overflow-y: auto;
+          overflow-x: hidden;
+          padding: 8px;
+        }
+
+        /* Custom scrollbar styling */
+        .messages-container::-webkit-scrollbar,
+        .message .message-content-inner::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .messages-container::-webkit-scrollbar-track,
+        .message .message-content-inner::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb,
+        .message .message-content-inner::-webkit-scrollbar-thumb {
+          background: var(--default);
+          border-radius: var(--radius-sm);
+        }
+
+        .messages-container::-webkit-scrollbar-thumb:hover,
+        .message .message-content-inner::-webkit-scrollbar-thumb:hover {
+          background: var(--default-hover);
+        }
+
+        /* Firefox scrollbar */
+        .messages-container,
+        .message .message-content-inner {
+          scrollbar-width: thin;
+          scrollbar-color: var(--default) transparent;
         }
 
         @keyframes slideIn {
@@ -497,11 +536,13 @@ RULES:
         }
           
         .message-content {
-          padding: 10px 14px;
           border-radius: 12px;
           line-height: 1.4;
           word-wrap: break-word;
           white-space: pre-wrap;
+          max-height: 500px;
+          overflow-y: auto;
+          overflow-x: auto;
         }
 
         .message.user .message-content {
@@ -514,35 +555,11 @@ RULES:
           background: var(--background-step-1);
           color: var(--text-normal);
           border: 1px solid var(--border);
+          border-radius: 12px;
           border-bottom-left-radius: var(--radius-sm);
-          max-height: 500px;
-          overflow-y: auto;
-          overflow-x: hidden;
+          overflow: hidden;
         }
 
-        /* Custom scrollbar styling */
-        .message.assistant .message-content::-webkit-scrollbar {
-          width: 6px;
-        }
-
-        .message.assistant .message-content::-webkit-scrollbar-track {
-          background: transparent;
-        }
-
-        .message.assistant .message-content::-webkit-scrollbar-thumb {
-          background: var(--background-step-3);
-          border-radius: var(--radius-sm);
-        }
-
-        .message.assistant .message-content::-webkit-scrollbar-thumb:hover {
-          background: var(--default-hover);
-        }
-
-        /* Firefox scrollbar */
-        .message.assistant .message-content {
-          scrollbar-width: thin;
-          scrollbar-color: var(--background-step-3) transparent;
-        }
 
         /* Markdown styling for assistant messages */
         .message.assistant .message-content h1,
@@ -734,11 +751,16 @@ RULES:
 
         button:hover:not(:disabled) {
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px var(--primary-flat-hover);
         }
 
         button:hover:not(:disabled):not(.clear-button) {
+          box-shadow: 0 4px 12px var(--primary-flat-hover);
           background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary-vibrant) 100%);
+        }
+
+        button:hover:not(:disabled):is(.clear-button) {
+          box-shadow: 0 4px 12px var(--danger-flat-hover);
+          background: linear-gradient(135deg, var(--danger-flat-hover) 0%, var(--danger-flat-active) 100%);
         }
 
         button:active:not(:disabled) {
@@ -855,7 +877,7 @@ RULES:
 
         .clear-button {
           padding: 4px 14px;
-          color: var(--text-inverted);
+          color: var(--text-normal);
           border: 1px solid var(--danger-flat-active);
           font-size: 12px;
           margin-left: auto;
@@ -875,7 +897,7 @@ RULES:
 
         .clear-button:hover {
           background: var(--danger-flat-hover);
-          border-color: var(--danger-base);
+          border-color: var(--danger-vibrant);
           color: var(--danger-vibrant);
         }
 
@@ -977,7 +999,7 @@ RULES:
       </style>
 
       <div class="widget-container">
-        <button class="toggle-button" id="toggle-btn" aria-label="Toggle chat">
+        <button class="toggle-button" id="toggle-btn" aria-label="Toggle AI Assistant Chat" title="Toggle AI Assistant Chat">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
           </svg>
@@ -1125,7 +1147,7 @@ RULES:
     return `
       <div class="message ${message.role}">
         <div class="message-label">${label}</div>
-        <div class="message-content">${content}</div>
+        <div class="message-content"><div class="message-content-inner">${content}</div></div>
       </div>
     `;
   }
@@ -1269,10 +1291,10 @@ RULES:
       messageDiv.className = 'message assistant';
       messageDiv.innerHTML = `
         <div class="message-label">AI Assistant</div>
-        <div class="message-content"></div>
+        <div class="message-content"><div class="message-content-inner"></div></div>
       `;
       this.messagesContainer?.appendChild(messageDiv);
-      const contentDiv = messageDiv.querySelector('.message-content') as HTMLDivElement;
+      const contentDiv = messageDiv.querySelector('.message-content-inner') as HTMLDivElement;
 
       // Process streaming response
       const reader = response.body?.getReader();
