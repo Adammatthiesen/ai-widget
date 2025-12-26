@@ -99,6 +99,175 @@ class AIAgentWidget extends HTMLElement {
   }
 
   /**
+   * Get all interactive form fields on the page
+   */
+  private getPageFormFields(): Array<{ id: string; name: string; type: string; value: string }> {
+    const fields: Array<{ id: string; name: string; type: string; value: string }> = [];
+
+    // Get all input, textarea, and select elements
+    const inputs = document.querySelectorAll('input, textarea, select');
+
+    inputs.forEach((element) => {
+      const el = element as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+      const id = el.id || el.name;
+
+      if (id && el.type !== 'password' && el.type !== 'hidden') {
+        fields.push({
+          id: id,
+          name: el.name || el.id,
+          type: el.tagName.toLowerCase() === 'textarea' ? 'textarea' : el.type || 'text',
+          value: el.value || ''
+        });
+      }
+    });
+
+    return fields;
+  }
+
+  /**
+   * Read content from a form field
+   */
+  private readFormField(fieldId: string): string | null {
+    const element = document.getElementById(fieldId) ||
+      document.querySelector(`[name="${fieldId}"]`);
+
+    if (element && (element instanceof HTMLInputElement ||
+      element instanceof HTMLTextAreaElement ||
+      element instanceof HTMLSelectElement)) {
+      return element.value;
+    }
+
+    return null;
+  }
+
+  /**
+   * Write content to a form field
+   */
+  private writeFormField(fieldId: string, content: string): boolean {
+    const element = document.getElementById(fieldId) ||
+      document.querySelector(`[name="${fieldId}"]`);
+
+    if (element && (element instanceof HTMLInputElement ||
+      element instanceof HTMLTextAreaElement ||
+      element instanceof HTMLSelectElement)) {
+      element.value = content;
+
+      // Trigger input and change events for frameworks that rely on them
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+      element.dispatchEvent(new Event('change', { bubbles: true }));
+
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Build system context message with available form fields
+   */
+  private buildSystemContext(): string {
+    const fields = this.getPageFormFields();
+
+    if (fields.length === 0) {
+      return 'You are a helpful AI assistant.';
+    }
+
+    const fieldList = fields.map(f =>
+      `- ${f.id} (${f.type})${f.value ? `: current value="${f.value.substring(0, 100)}${f.value.length > 100 ? '...' : ''}"` : ''}`
+    ).join('\n');
+
+    return `You are a helpful AI assistant with the ability to interact with form fields on the current page.
+
+Available form fields:
+${fieldList}
+
+You can:
+1. READ field content using this exact format:
+   [READ_FIELD:field-id]
+   This will be replaced with the current field value automatically.
+   
+2. WRITE to fields using this exact format:
+   [WRITE_FIELD:field-id]
+   content to write
+   [/WRITE_FIELD]
+
+When interacting with fields:
+- Use the exact field ID from the list above
+- You can read multiple fields by using multiple [READ_FIELD:...] tags
+- You can write to multiple fields in one response
+- Always confirm what you're reading or writing
+
+Examples:
+- Reading: "Let me check what's in the content field: [READ_FIELD:content]"
+- Writing: "I'll update the title field for you:
+[WRITE_FIELD:title]
+Amazing New Blog Post
+[/WRITE_FIELD]"`;
+  }
+
+  /**
+   * Process field read commands in user message before sending
+   */
+  private processFieldReads(content: string): string {
+    const readFieldRegex = /\[READ_FIELD:([^\]]+)\]/g;
+    let processedContent = content;
+    let match;
+
+    while ((match = readFieldRegex.exec(content)) !== null) {
+      const fieldId = match[1].trim();
+      const fieldValue = this.readFormField(fieldId);
+
+      if (fieldValue !== null) {
+        // Replace the READ_FIELD tag with the actual value
+        processedContent = processedContent.replace(
+          match[0],
+          `[Field "${fieldId}" contains: "${fieldValue}"]`
+        );
+      } else {
+        processedContent = processedContent.replace(
+          match[0],
+          `[Field "${fieldId}" not found]`
+        );
+      }
+    }
+
+    return processedContent;
+  }
+
+  /**
+   * Inject current field values into system context
+   */
+  private injectFieldContext(userMessage: string): string {
+    // Check if user is asking about specific fields
+    const fields = this.getPageFormFields();
+    const mentionedFields: string[] = [];
+
+    fields.forEach(field => {
+      // Check if user mentions the field by name or id
+      const fieldPattern = new RegExp(`\\b(${field.id}|${field.name})\\b`, 'i');
+      if (fieldPattern.test(userMessage)) {
+        mentionedFields.push(field.id);
+      }
+    });
+
+    // If user mentions checking/reviewing/reading fields, auto-inject their values
+    const checkingPattern = /\b(check|review|read|see|look at|show|tell me about)\b.*\b(field|content|value)\b/i;
+    if (checkingPattern.test(userMessage) && mentionedFields.length > 0) {
+      let contextAddition = '\n\n[Auto-fetched field values for context:';
+      mentionedFields.forEach(fieldId => {
+        const value = this.readFormField(fieldId);
+        if (value) {
+          contextAddition += `\n- ${fieldId}: "${value.substring(0, 200)}${value.length > 200 ? '...' : ''}"`;
+        }
+      });
+      contextAddition += ']';
+      return userMessage + contextAddition;
+    }
+
+    return userMessage;
+  }
+
+  /**
    * Render the component HTML and styles
    */
   private render(): void {
@@ -529,6 +698,26 @@ class AIAgentWidget extends HTMLElement {
           margin: 8px 0;
         }
 
+        .field-notification {
+          padding: 10px 12px;
+          border-radius: var(--radius-md);
+          font-size: 13px;
+          margin: 8px 0;
+          animation: slideIn 0.3s ease-out;
+        }
+
+        .field-notification.success {
+          background: var(--success-flat);
+          border: 1px solid var(--success-base);
+          color: var(--success-base);
+        }
+
+        .field-notification.error {
+          background: var(--danger-flat);
+          border: 1px solid var(--danger-base);
+          color: var(--danger-vibrant);
+        }
+
         .empty-state {
           display: flex;
           flex-direction: column;
@@ -713,8 +902,14 @@ class AIAgentWidget extends HTMLElement {
     const content = this.inputField.value.trim();
     if (!content || this.state.isLoading) return;
 
-    // Add user message
-    this.addMessage({ role: 'user', content });
+    // Process any READ_FIELD commands in the user's message
+    let processedContent = this.processFieldReads(content);
+
+    // Inject field context if user is asking about fields
+    processedContent = this.injectFieldContext(processedContent);
+
+    // Add user message (with processed content)
+    this.addMessage({ role: 'user', content: processedContent });
 
     // Clear input
     this.inputField.value = '';
@@ -786,10 +981,17 @@ class AIAgentWidget extends HTMLElement {
     this.scrollToBottom();
 
     try {
+      // Build messages array with system context
+      const systemContext = this.buildSystemContext();
+      const messagesWithContext = [
+        { role: 'system' as const, content: systemContext },
+        ...this.state.messages
+      ];
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: this.state.messages }),
+        body: JSON.stringify({ messages: messagesWithContext }),
       });
 
       if (!response.ok) {
@@ -849,6 +1051,9 @@ class AIAgentWidget extends HTMLElement {
         }
       }
 
+      // Process any field write commands in the response
+      this.processFieldCommands(assistantMessage.content);
+
       // Save final state
       this.saveStateToStorage();
 
@@ -856,6 +1061,58 @@ class AIAgentWidget extends HTMLElement {
       loadingDiv.remove();
       throw error;
     }
+  }
+
+  /**
+   * Process field write commands in AI response
+   */
+  private processFieldCommands(content: string): void {
+    const writeFieldRegex = /\[WRITE_FIELD:([^\]]+)\]\s*([\s\S]*?)\s*\[\/WRITE_FIELD\]/g;
+    let match;
+    const writes: Array<{ field: string; content: string; success: boolean }> = [];
+
+    while ((match = writeFieldRegex.exec(content)) !== null) {
+      const fieldId = match[1].trim();
+      const fieldContent = match[2].trim();
+
+      const success = this.writeFormField(fieldId, fieldContent);
+      writes.push({ field: fieldId, content: fieldContent, success });
+    }
+
+    // Show feedback if any writes occurred
+    if (writes.length > 0) {
+      const successWrites = writes.filter(w => w.success);
+      const failedWrites = writes.filter(w => !w.success);
+
+      if (successWrites.length > 0) {
+        this.showFieldWriteNotification(
+          `✅ Updated ${successWrites.length} field${successWrites.length > 1 ? 's' : ''}: ${successWrites.map(w => w.field).join(', ')}`
+        );
+      }
+
+      if (failedWrites.length > 0) {
+        this.showFieldWriteNotification(
+          `⚠️ Failed to update: ${failedWrites.map(w => w.field).join(', ')}`,
+          true
+        );
+      }
+    }
+  }
+
+  /**
+   * Show notification for field writes
+   */
+  private showFieldWriteNotification(message: string, isError: boolean = false): void {
+    if (!this.messagesContainer) return;
+
+    const notification = document.createElement('div');
+    notification.className = isError ? 'field-notification error' : 'field-notification success';
+    notification.textContent = message;
+    this.messagesContainer.appendChild(notification);
+    this.scrollToBottom();
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => notification.remove(), 5000);
   }
 
   /**

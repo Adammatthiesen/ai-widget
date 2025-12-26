@@ -1,0 +1,215 @@
+---
+import '../studiocms-ui-styles/global.css';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<title>AI Agent Form Interaction Demo</title>
+		<style>
+			body {
+				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+				background: var(--background-base);
+				color: var(--text-normal);
+				padding: 40px 20px;
+				max-width: 800px;
+				margin: 0 auto;
+			}
+
+			h1 {
+				font-size: 2rem;
+				margin-bottom: 12px;
+				color: var(--primary-base);
+			}
+
+			.intro {
+				color: var(--text-dimmed);
+				margin-bottom: 32px;
+				line-height: 1.6;
+			}
+
+			.form-container {
+				background: var(--background-step-1);
+				border: 1px solid var(--border);
+				padding: 32px;
+				border-radius: var(--radius-lg);
+				margin-bottom: 32px;
+			}
+
+			.form-group {
+				margin-bottom: 24px;
+			}
+
+			label {
+				display: block;
+				font-weight: 600;
+				margin-bottom: 8px;
+				color: var(--text-normal);
+			}
+
+			input[type="text"],
+			input[type="email"],
+			textarea,
+			select {
+				width: 100%;
+				padding: 12px;
+				border: 1px solid var(--border);
+				border-radius: var(--radius-md);
+				background: var(--background-base);
+				color: var(--text-normal);
+				font-family: inherit;
+				font-size: 14px;
+				transition: border-color 0.2s;
+			}
+
+			input:focus,
+			textarea:focus,
+			select:focus {
+				outline: none;
+				border-color: var(--primary-base);
+			}
+
+			textarea {
+				resize: vertical;
+				min-height: 120px;
+				font-family: inherit;
+			}
+
+			.help-text {
+				font-size: 13px;
+				color: var(--text-muted);
+				margin-top: 6px;
+			}
+
+			.suggestions {
+				background: var(--primary-flat);
+				border: 1px solid var(--primary-base);
+				padding: 20px;
+				border-radius: var(--radius-md);
+				margin-top: 32px;
+			}
+
+			.suggestions h3 {
+				margin: 0 0 12px 0;
+				color: var(--primary-base);
+				font-size: 1.1rem;
+			}
+
+			.suggestions ul {
+				margin: 0;
+				padding-left: 20px;
+			}
+
+			.suggestions li {
+				color: var(--text-dimmed);
+				margin-bottom: 8px;
+				line-height: 1.5;
+			}
+
+			.suggestions code {
+				background: var(--background-step-2);
+				padding: 2px 6px;
+				border-radius: var(--radius-sm);
+				font-size: 12px;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>📝 AI Agent Form Interaction Demo</h1>
+		
+		<p class="intro">
+			This page demonstrates the AI Agent's ability to read and write form fields. 
+			Try asking the AI to help you compose content, review existing text, or fill out the form!
+		</p>
+
+		<div class="form-container">
+			<h2>Blog Post Editor</h2>
+			
+			<div class="form-group">
+				<label for="title">Post Title</label>
+				<input 
+					type="text" 
+					id="title" 
+					name="title" 
+					placeholder="Enter your blog post title..."
+				/>
+				<p class="help-text">The main title of your blog post</p>
+			</div>
+
+			<div class="form-group">
+				<label for="author">Author Name</label>
+				<input 
+					type="text" 
+					id="author" 
+					name="author" 
+					placeholder="Your name"
+				/>
+			</div>
+
+			<div class="form-group">
+				<label for="category">Category</label>
+				<select id="category" name="category">
+					<option value="">Select a category...</option>
+					<option value="technology">Technology</option>
+					<option value="design">Design</option>
+					<option value="business">Business</option>
+					<option value="lifestyle">Lifestyle</option>
+				</select>
+			</div>
+
+			<div class="form-group">
+				<label for="excerpt">Excerpt</label>
+				<textarea 
+					id="excerpt" 
+					name="excerpt" 
+					placeholder="A brief summary of your post..."
+				></textarea>
+				<p class="help-text">A short description that appears in previews</p>
+			</div>
+
+			<div class="form-group">
+				<label for="content">Post Content</label>
+				<textarea 
+					id="content" 
+					name="content" 
+					placeholder="Write your blog post content here..."
+					rows="12"
+				></textarea>
+				<p class="help-text">The main content of your blog post (supports markdown)</p>
+			</div>
+
+			<div class="form-group">
+				<label for="tags">Tags</label>
+				<input 
+					type="text" 
+					id="tags" 
+					name="tags" 
+					placeholder="e.g., web development, javascript, tutorial"
+				/>
+				<p class="help-text">Comma-separated list of tags</p>
+			</div>
+		</div>
+
+		<div class="suggestions">
+			<h3>💡 Try These Commands</h3>
+			<ul>
+				<li>"Write me a blog post about web development trends in 2025"</li>
+				<li>"Review the content I've written and suggest improvements"</li>
+				<li>"Generate a catchy title for a post about AI assistants"</li>
+				<li>"Create an excerpt based on the content field"</li>
+				<li>"Suggest relevant tags for this post"</li>
+				<li>"Fill out all the fields for a post about sustainable tech"</li>
+			</ul>
+		</div>
+
+		<!-- AI Widget -->
+		<ai-agent-widget></ai-agent-widget>
+
+		<script>
+			import '../components/AIAgentWidget.ts';
+		</script>
+	</body>
+</html>
