@@ -278,7 +278,7 @@ Amazing New Blog Post
           bottom: 20px;
           right: 20px;
           z-index: 1000;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+          font-family: var(--scms-font-onest, -apple-system), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         }
 
         .widget-container {
@@ -295,13 +295,18 @@ Amazing New Blog Post
           background: linear-gradient(135deg, var(--primary-base) 0%, var(--primary-active) 100%);
           border: none;
           color: var(--text-inverted);
-          font-size: 28px;
           cursor: pointer;
           box-shadow: 0 4px 12px var(--shadow);
           transition: transform 0.2s, box-shadow 0.2s;
           display: flex;
           align-items: center;
           justify-content: center;
+          padding: unset;
+
+          & svg {
+            height: 28px;
+            width: 28px !important;
+          }
         }
 
         .toggle-button:hover {
@@ -397,8 +402,38 @@ Amazing New Blog Post
           color: var(--primary-active);
         }
 
+        .message.user .message-label::after {
+          --svg-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16px' height='16px' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23000' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M17.982 18.725A7.49 7.49 0 0 0 12 15.75a7.49 7.49 0 0 0-5.982 2.975m11.964 0a9 9 0 1 0-11.963 0m11.962 0A8.97 8.97 0 0 1 12 21a8.97 8.97 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0a3 3 0 0 1 6 0'/%3E%3C/svg%3E");
+          content: "";
+          display: inline-block;
+          width: 16px;
+          height: 16px;
+          background-color: var(--primary-active);
+          -webkit-mask: var(--svg-icon) no-repeat center;
+          mask: var(--svg-icon) no-repeat center;
+          mask-size: cover;
+          -webkit-mask-size: cover;
+          vertical-align: middle;
+          margin-left: 4px;
+        }
+
         .message.assistant .message-label {
           color: var(--primary-active);
+        }
+
+        .message.assistant .message-label::before {
+          --svg-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16px' height='16px' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%23000' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'%3E%3Cpath d='M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-5l-5 3v-3H6a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3zM9.5 9h.01m4.99 0h.01'/%3E%3Cpath d='M9.5 13a3.5 3.5 0 0 0 5 0'/%3E%3C/g%3E%3C/svg%3E");
+          content: "";
+          display: inline-block;
+          width: 16px;
+          height: 16px;
+          background-color: var(--primary-active);
+          -webkit-mask: var(--svg-icon) no-repeat center;
+          mask: var(--svg-icon) no-repeat center;
+          mask-size: cover;
+          -webkit-mask-size: cover;
+          vertical-align: middle;
+          margin-right: 4px;
         }
           
         .message-content {
@@ -732,6 +767,11 @@ Amazing New Blog Post
         .empty-state-icon {
           font-size: 48px;
           margin-bottom: 16px;
+
+          & svg {
+            height: 48px;
+            width: 48px;
+          }
         }
 
         .empty-state-text {
@@ -745,13 +785,23 @@ Amazing New Blog Post
         }
 
         .clear-button {
-          padding: 6px 14px;
+          padding: 4px 14px;
           color: var(--text-inverted);
           border: 1px solid var(--danger-flat-active);
           font-size: 12px;
           margin-left: auto;
 
           background: var(--danger-flat);
+
+          display: flex;
+          gap: 6px;
+          align-items: center;
+
+          & svg {
+            height: 16px;
+            width: 16px;
+          }
+
         }
 
         .clear-button:hover {
@@ -763,12 +813,19 @@ Amazing New Blog Post
 
       <div class="widget-container">
         <button class="toggle-button" id="toggle-btn" aria-label="Toggle chat">
-          💬
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+          </svg>
         </button>
         <div class="chat-container" id="chat-container">
           <div class="chat-header">
             <span>AI Assistant</span>
-            <button class="clear-button" id="clear-btn">Clear History</button>
+            <button class="clear-button" id="clear-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+              </svg>
+              <span>Clear History</span>
+            </button>
           </div>
           <div class="messages-container" id="messages"></div>
           <div class="input-container">
@@ -837,7 +894,11 @@ Amazing New Blog Post
     if (this.state.messages.length === 0) {
       this.messagesContainer.innerHTML = `
         <div class="empty-state">
-          <div class="empty-state-icon">💬</div>
+          <div class="empty-state-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+            </svg>
+          </div>
           <div class="empty-state-text">Start a conversation</div>
           <div class="empty-state-subtext">Ask me anything!</div>
         </div>
@@ -952,10 +1013,10 @@ Amazing New Blog Post
     if (this.chatContainer && this.toggleButton) {
       if (this.state.isOpen) {
         this.chatContainer.classList.add('open');
-        this.toggleButton.innerHTML = '✕';
+        this.toggleButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>`;
       } else {
         this.chatContainer.classList.remove('open');
-        this.toggleButton.innerHTML = '💬';
+        this.toggleButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" /></svg>`;
       }
     }
   }
