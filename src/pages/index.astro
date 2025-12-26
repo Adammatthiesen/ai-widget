@@ -1,162 +1,126 @@
 ---
-import '../studiocms-ui-styles/global.css';
+import DemoLayout from "../layouts/DemoLayout.astro";
 ---
 
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>AI Chat Widget - Astro</title>
-		<style>
-			body {
-				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-				background: var(--background-base);
-				color: var(--text-normal);
-				min-height: 100vh;
-				padding: 20px;
-			}
+<DemoLayout
+  title="AI Chat Widget - Astro"
+  description="AI Chat Widget Demo with OpenAI integration"
+>
+  <style>
+    header {
+      margin-bottom: 32px;
+    }
 
-			header {
-				max-width: 800px;
-				margin: 0 auto;
-				padding: 40px 20px;
-				color: var(--text-normal);
-			}
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+      font-weight: 700;
+      color: var(--primary-base);
+    }
 
-			h1 {
-				font-size: 2.5rem;
-				margin-bottom: 12px;
-				font-weight: 700;
-				color: var(--primary-base);
-				background-clip: text;
-			}
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--text-dimmed);
+      margin-bottom: 24px;
+    }
 
-			.subtitle {
-				font-size: 1.1rem;
-				color: var(--text-dimmed);
-				margin-bottom: 24px;
-			}
+    .features {
+      display: grid;
+      gap: 16px;
+      margin-top: 24px;
+    }
 
-			.features {
-				display: grid;
-				gap: 16px;
-				margin-top: 24px;
-			}
+    .feature {
+      background: var(--background-step-1);
+      border: 1px solid var(--border);
+      padding: 20px;
+      border-radius: var(--radius-lg);
+      transition:
+        transform 0.2s,
+        box-shadow 0.2s;
+    }
 
-			.feature {
-				background: var(--background-step-1);
-				border: 1px solid var(--border);
-				padding: 20px;
-				border-radius: var(--radius-lg);
-				transition: transform 0.2s, box-shadow 0.2s;
-			}
+    .feature:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
 
-			.feature:hover {
-				transform: translateY(-2px);
-				box-shadow: 0 4px 12px var(--shadow);
-			}
+    .feature h2 {
+      font-size: 1.3rem;
+      margin-bottom: 8px;
+      color: var(--text-normal);
+    }
 
-			.feature h2 {
-				font-size: 1.3rem;
-				margin-bottom: 8px;
-				color: var(--text-normal);
-			}
+    .feature p {
+      color: var(--text-dimmed);
+      line-height: 1.6;
+    }
 
-			.feature p {
-				color: var(--text-dimmed);
-				line-height: 1.6;
-			}
+    .demo-content {
+      background: var(--background-step-1);
+      border: 1px solid var(--border);
+      padding: 32px;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 4px 16px var(--shadow);
+      margin-top: 32px;
+    }
 
-			main {
-				max-width: 800px;
-				margin: 0 auto;
-				padding: 20px;
-			}
+    .demo-content h2 {
+      margin-bottom: 16px;
+      color: var(--primary-base);
+    }
 
-			.demo-content {
-				background: var(--background-step-1);
-				border: 1px solid var(--border);
-				padding: 32px;
-				border-radius: var(--radius-lg);
-				box-shadow: 0 4px 16px var(--shadow);
-			}
+    .demo-content p {
+      line-height: 1.6;
+      color: var(--text-normal);
+      margin-bottom: 12px;
+    }
 
-			.demo-content h2 {
-				margin-bottom: 16px;
-				color: var(--primary-base);
-			}
+    .demo-content strong {
+      color: var(--text-normal);
+      font-weight: 600;
+    }
 
-			.demo-content p {
-				line-height: 1.6;
-				color: var(--text-normal);
-				margin-bottom: 12px;
-			}
+    .demo-content ul {
+      margin-left: 20px;
+      margin-top: 12px;
+    }
 
-			.demo-content strong {
-				color: var(--text-normal);
-				font-weight: 600;
-			}
+    .demo-content li {
+      margin-bottom: 8px;
+      line-height: 1.6;
+      color: var(--text-dimmed);
+    }
+  </style>
 
-			.demo-content ul {
-				margin-left: 20px;
-				margin-top: 12px;
-			}
+  <header>
+    <h1>🤖 AI Chat Assistant</h1>
+    <p class="subtitle">
+      Powered by OpenAI & Astro - Click the chat button in the bottom right to
+      start!
+    </p>
+  </header>
 
-			.demo-content li {
-				margin-bottom: 8px;
-				line-height: 1.6;
-				color: var(--text-dimmed);
-			}
-		</style>
-	</head>
-	<body>
-		<header>
-			<h1>🤖 AI Chat Assistant</h1>
-			<p class="subtitle">Powered by OpenAI & Astro - Click the chat button in the bottom right to start!</p>
-			
-			<div class="features">
-				<div class="feature">
-					<h2>💬 Real-time Streaming</h2>
-					<p>Experience real-time AI responses with streaming support for immediate feedback.</p>
-				</div>
-				<div class="feature">
-					<h2>📝 Markdown Support</h2>
-					<p>Full markdown rendering support with code highlighting, tables, and more.</p>
-				</div>
-				<div class="feature">
-					<h2>💾 Persistent History</h2>
-					<p>Your conversations are automatically saved locally for easy reference.</p>
-				</div>
-			</div>
-		</header>
-		
-		<main>
-			<div class="demo-content">
-				<h2>Welcome to the AI Chat Widget Demo</h2>
-				<p>This is a fully-featured AI chat widget built with Astro and Web Components. It integrates seamlessly with OpenAI's API to provide intelligent conversational assistance.</p>
-				
-				<p><strong>Features include:</strong></p>
-				<ul>
-					<li>Floating pop-out design that doesn't interrupt your workflow</li>
-					<li>Real-time streaming responses with markdown rendering</li>
-					<li>Persistent chat history using localStorage</li>
-					<li>Configurable via environment variables</li>
-					<li>Fully encapsulated Web Component with Shadow DOM</li>
-				</ul>
-				
-				<p>Click the chat button (💬) in the bottom right corner to start a conversation!</p>
-			</div>
-		</main>
+  <div class="demo-content">
+    <h2>Welcome to the AI Chat Widget Demo</h2>
+    <p>
+      This is a fully-featured AI chat widget built with Astro and Web
+      Components. It integrates seamlessly with OpenAI's API to provide
+      intelligent conversational assistance.
+    </p>
 
-		<!-- The widget now floats, so no need to place it in main -->
-		<ai-agent-widget></ai-agent-widget>
+    <p><strong>Features include:</strong></p>
+    <ul>
+      <li>Floating pop-out design that doesn't interrupt your workflow</li>
+      <li>Real-time streaming responses with markdown rendering</li>
+      <li>Persistent chat history using localStorage</li>
+      <li>Configurable via environment variables</li>
+      <li>Fully encapsulated Web Component with Shadow DOM</li>
+    </ul>
 
-		<script>
-			// Import the Web Component
-			import '../components/AIAgentWidget.ts';
-		</script>
-	</body>
-</html>
+    <p>
+      Click the chat button (💬) in the bottom right corner to start a
+      conversation!
+    </p>
+  </div>
+</DemoLayout>

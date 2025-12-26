@@ -1,0 +1,115 @@
+---
+const currentPath = Astro.url.pathname;
+
+const navItems = [
+  { href: '/', label: 'Widget Demo', icon: '🤖' },
+  { href: '/form-demo', label: 'Form Interaction', icon: '📝' },
+];
+---
+
+<nav class="demo-nav">
+  <div class="nav-container">
+    <div class="nav-brand">
+      <span class="brand-icon">💬</span>
+      <span class="brand-text">AI Chat Widget</span>
+    </div>
+    
+    <div class="nav-links">
+      {navItems.map(item => (
+        <a 
+          href={item.href} 
+          class:list={['nav-link', { active: currentPath === item.href }]}
+        >
+          <span class="nav-icon">{item.icon}</span>
+          <span class="nav-label">{item.label}</span>
+        </a>
+      ))}
+    </div>
+  </div>
+</nav>
+
+<style>
+  .demo-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: var(--background-step-1);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    background: rgba(var(--background-step-1) / 0.95);
+  }
+
+  .nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  .brand-icon {
+    font-size: 1.5rem;
+  }
+
+  .brand-text {
+    background: linear-gradient(135deg, var(--primary-base) 0%, var(--primary-vibrant) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--text-dimmed);
+    transition: all 0.2s;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  .nav-link:hover {
+    background: var(--background-step-2);
+    color: var(--text-normal);
+  }
+
+  .nav-link.active {
+    background: var(--primary-flat);
+    color: var(--primary-base);
+    font-weight: 600;
+  }
+
+  .nav-icon {
+    font-size: 1.2rem;
+  }
+
+  .nav-label {
+    display: none;
+  }
+
+  @media (min-width: 640px) {
+    .nav-label {
+      display: inline;
+    }
+  }
+</style>
