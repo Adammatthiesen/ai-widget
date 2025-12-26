@@ -12,97 +12,97 @@
 import MarkdownIt from 'markdown-it';
 
 interface ChatMessage {
-    role: 'user' | 'assistant' | 'system';
-    content: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
 }
 
 interface ChatState {
-    messages: ChatMessage[];
-    isLoading: boolean;
-    error: string | null;
-    isOpen: boolean;
+  messages: ChatMessage[];
+  isLoading: boolean;
+  error: string | null;
+  isOpen: boolean;
 }
 
 class AIAgentWidget extends HTMLElement {
-    private shadow: ShadowRoot;
-    private state: ChatState;
-    private storageKey = 'ai-chat-history';
-    private md: MarkdownIt;
+  private shadow: ShadowRoot;
+  private state: ChatState;
+  private storageKey = 'ai-chat-history';
+  private md: MarkdownIt;
 
-    // Element references
-    private chatContainer: HTMLDivElement | null = null;
-    private inputField: HTMLTextAreaElement | null = null;
-    private sendButton: HTMLButtonElement | null = null;
-    private messagesContainer: HTMLDivElement | null = null;
-    private toggleButton: HTMLButtonElement | null = null;
+  // Element references
+  private chatContainer: HTMLDivElement | null = null;
+  private inputField: HTMLTextAreaElement | null = null;
+  private sendButton: HTMLButtonElement | null = null;
+  private messagesContainer: HTMLDivElement | null = null;
+  private toggleButton: HTMLButtonElement | null = null;
 
-    constructor() {
-        super();
-        this.shadow = this.attachShadow({ mode: 'open' });
+  constructor() {
+    super();
+    this.shadow = this.attachShadow({ mode: 'open' });
 
-        // Initialize markdown-it with safe defaults
-        this.md = new MarkdownIt({
-            html: true,         // Allow HTML tags for proper rendering
-            breaks: true,       // Convert \n to <br>
-            linkify: true,      // Auto-convert URLs to links
-            typographer: true,  // Enable smartquotes and other typographic replacements
-            xhtmlOut: true,     // Use XHTML-style tags (e.g., <br />)
-        });
+    // Initialize markdown-it with safe defaults
+    this.md = new MarkdownIt({
+      html: true,         // Allow HTML tags for proper rendering
+      breaks: true,       // Convert \n to <br>
+      linkify: true,      // Auto-convert URLs to links
+      typographer: true,  // Enable smartquotes and other typographic replacements
+      xhtmlOut: true,     // Use XHTML-style tags (e.g., <br />)
+    });
 
-        // Initialize state with optional localStorage persistence
-        this.state = this.loadStateFromStorage();
+    // Initialize state with optional localStorage persistence
+    this.state = this.loadStateFromStorage();
 
-        this.render();
-        this.attachEventListeners();
-        this.updateWidgetState();
-    }
+    this.render();
+    this.attachEventListeners();
+    this.updateWidgetState();
+  }
 
-    /**
-     * Load chat history from localStorage if available
-     */
-    private loadStateFromStorage(): ChatState {
-        try {
-            const stored = localStorage.getItem(this.storageKey);
-            if (stored) {
-                const parsed = JSON.parse(stored);
-                return {
-                    messages: parsed.messages || [],
-                    isLoading: false,
-                    error: null,
-                    isOpen: false,
-                };
-            }
-        } catch (error) {
-            console.warn('Failed to load chat history:', error);
-        }
-
+  /**
+   * Load chat history from localStorage if available
+   */
+  private loadStateFromStorage(): ChatState {
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
         return {
-            messages: [],
-            isLoading: false,
-            error: null,
-            isOpen: false,
+          messages: parsed.messages || [],
+          isLoading: false,
+          error: null,
+          isOpen: false,
         };
+      }
+    } catch (error) {
+      console.warn('Failed to load chat history:', error);
     }
 
-    /**
-     * Save chat history to localStorage
-     */
-    private saveStateToStorage(): void {
-        try {
-            localStorage.setItem(
-                this.storageKey,
-                JSON.stringify({ messages: this.state.messages })
-            );
-        } catch (error) {
-            console.warn('Failed to save chat history:', error);
-        }
-    }
+    return {
+      messages: [],
+      isLoading: false,
+      error: null,
+      isOpen: false,
+    };
+  }
 
-    /**
-     * Render the component HTML and styles
-     */
-    private render(): void {
-        this.shadow.innerHTML = `
+  /**
+   * Save chat history to localStorage
+   */
+  private saveStateToStorage(): void {
+    try {
+      localStorage.setItem(
+        this.storageKey,
+        JSON.stringify({ messages: this.state.messages })
+      );
+    } catch (error) {
+      console.warn('Failed to save chat history:', error);
+    }
+  }
+
+  /**
+   * Render the component HTML and styles
+   */
+  private render(): void {
+    this.shadow.innerHTML = `
       <style>
         :host {
           position: fixed;
@@ -594,185 +594,185 @@ class AIAgentWidget extends HTMLElement {
       </div>
     `;
 
-        // Cache element references
-        this.toggleButton = this.shadow.getElementById('toggle-btn') as HTMLButtonElement;
-        this.chatContainer = this.shadow.getElementById('chat-container') as HTMLDivElement;
-        this.messagesContainer = this.shadow.getElementById('messages') as HTMLDivElement;
-        this.inputField = this.shadow.getElementById('input') as HTMLTextAreaElement;
-        this.sendButton = this.shadow.getElementById('send-btn') as HTMLButtonElement;
+    // Cache element references
+    this.toggleButton = this.shadow.getElementById('toggle-btn') as HTMLButtonElement;
+    this.chatContainer = this.shadow.getElementById('chat-container') as HTMLDivElement;
+    this.messagesContainer = this.shadow.getElementById('messages') as HTMLDivElement;
+    this.inputField = this.shadow.getElementById('input') as HTMLTextAreaElement;
+    this.sendButton = this.shadow.getElementById('send-btn') as HTMLButtonElement;
 
-        // Render existing messages
-        this.renderMessages();
-    }
+    // Render existing messages
+    this.renderMessages();
+  }
 
-    /**
-     * Attach event listeners to interactive elements
-     */
-    private attachEventListeners(): void {
-        // Toggle button click
-        this.toggleButton?.addEventListener('click', () => this.toggleWidget());
+  /**
+   * Attach event listeners to interactive elements
+   */
+  private attachEventListeners(): void {
+    // Toggle button click
+    this.toggleButton?.addEventListener('click', () => this.toggleWidget());
 
-        // Send button click
-        this.sendButton?.addEventListener('click', () => this.handleSend());
+    // Send button click
+    this.sendButton?.addEventListener('click', () => this.handleSend());
 
-        // Enter key to send (Shift+Enter for new line)
-        this.inputField?.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                this.handleSend();
-            }
-        });
+    // Enter key to send (Shift+Enter for new line)
+    this.inputField?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        this.handleSend();
+      }
+    });
 
-        // Auto-resize textarea
-        this.inputField?.addEventListener('input', () => {
-            if (this.inputField) {
-                this.inputField.style.height = 'auto';
-                this.inputField.style.height = `${this.inputField.scrollHeight}px`;
-            }
-        });
+    // Auto-resize textarea
+    this.inputField?.addEventListener('input', () => {
+      if (this.inputField) {
+        this.inputField.style.height = 'auto';
+        this.inputField.style.height = `${this.inputField.scrollHeight}px`;
+      }
+    });
 
-        // Clear history button
-        this.shadow.getElementById('clear-btn')?.addEventListener('click', () => {
-            if (confirm('Clear all chat history?')) {
-                this.clearHistory();
-            }
-        });
-    }
+    // Clear history button
+    this.shadow.getElementById('clear-btn')?.addEventListener('click', () => {
+      if (confirm('Clear all chat history?')) {
+        this.clearHistory();
+      }
+    });
+  }
 
-    /**
-     * Render all messages in the chat
-     */
-    private renderMessages(): void {
-        if (!this.messagesContainer) return;
+  /**
+   * Render all messages in the chat
+   */
+  private renderMessages(): void {
+    if (!this.messagesContainer) return;
 
-        if (this.state.messages.length === 0) {
-            this.messagesContainer.innerHTML = `
+    if (this.state.messages.length === 0) {
+      this.messagesContainer.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">💬</div>
           <div class="empty-state-text">Start a conversation</div>
           <div class="empty-state-subtext">Ask me anything!</div>
         </div>
       `;
-            return;
-        }
-
-        this.messagesContainer.innerHTML = this.state.messages
-            .map((msg) => this.createMessageHTML(msg))
-            .join('');
-
-        // Scroll to bottom
-        this.scrollToBottom();
+      return;
     }
 
-    /**
-     * Create HTML for a single message
-     */
-    private createMessageHTML(message: ChatMessage): string {
-        const label = message.role === 'user' ? 'You' : 'AI Assistant';
-        const content = message.role === 'assistant'
-            ? this.md.render(message.content)
-            : this.escapeHtml(message.content);
+    this.messagesContainer.innerHTML = this.state.messages
+      .map((msg) => this.createMessageHTML(msg))
+      .join('');
 
-        return `
+    // Scroll to bottom
+    this.scrollToBottom();
+  }
+
+  /**
+   * Create HTML for a single message
+   */
+  private createMessageHTML(message: ChatMessage): string {
+    const label = message.role === 'user' ? 'You' : 'AI Assistant';
+    const content = message.role === 'assistant'
+      ? this.md.render(message.content)
+      : this.escapeHtml(message.content);
+
+    return `
       <div class="message ${message.role}">
         <div class="message-label">${label}</div>
         <div class="message-content">${content}</div>
       </div>
     `;
+  }
+
+  /**
+   * Add a new message to the chat
+   */
+  private addMessage(message: ChatMessage): void {
+    this.state.messages.push(message);
+    this.saveStateToStorage();
+
+    if (this.messagesContainer) {
+      // Remove empty state if present
+      const emptyState = this.messagesContainer.querySelector('.empty-state');
+      if (emptyState) {
+        this.messagesContainer.innerHTML = '';
+      }
+
+      // Add new message
+      this.messagesContainer.insertAdjacentHTML(
+        'beforeend',
+        this.createMessageHTML(message)
+      );
+      this.scrollToBottom();
     }
+  }
 
-    /**
-     * Add a new message to the chat
-     */
-    private addMessage(message: ChatMessage): void {
-        this.state.messages.push(message);
-        this.saveStateToStorage();
+  /**
+   * Handle sending a message
+   */
+  private async handleSend(): Promise<void> {
+    if (!this.inputField || !this.sendButton) return;
 
-        if (this.messagesContainer) {
-            // Remove empty state if present
-            const emptyState = this.messagesContainer.querySelector('.empty-state');
-            if (emptyState) {
-                this.messagesContainer.innerHTML = '';
-            }
+    const content = this.inputField.value.trim();
+    if (!content || this.state.isLoading) return;
 
-            // Add new message
-            this.messagesContainer.insertAdjacentHTML(
-                'beforeend',
-                this.createMessageHTML(message)
-            );
-            this.scrollToBottom();
-        }
+    // Add user message
+    this.addMessage({ role: 'user', content });
+
+    // Clear input
+    this.inputField.value = '';
+    this.inputField.style.height = 'auto';
+
+    // Update loading state
+    this.state.isLoading = true;
+    this.state.error = null;
+    this.updateLoadingState();
+
+    try {
+      await this.streamChatResponse();
+    } catch (error) {
+      console.error('Chat error:', error);
+      this.state.error = error instanceof Error ? error.message : 'An error occurred';
+      this.showError(this.state.error);
+    } finally {
+      this.state.isLoading = false;
+      this.updateLoadingState();
     }
+  }
 
-    /**
-     * Handle sending a message
-     */
-    private async handleSend(): Promise<void> {
-        if (!this.inputField || !this.sendButton) return;
+  /**
+   * Toggle widget open/closed
+   */
+  private toggleWidget(): void {
+    this.state.isOpen = !this.state.isOpen;
+    this.updateWidgetState();
 
-        const content = this.inputField.value.trim();
-        if (!content || this.state.isLoading) return;
-
-        // Add user message
-        this.addMessage({ role: 'user', content });
-
-        // Clear input
-        this.inputField.value = '';
-        this.inputField.style.height = 'auto';
-
-        // Update loading state
-        this.state.isLoading = true;
-        this.state.error = null;
-        this.updateLoadingState();
-
-        try {
-            await this.streamChatResponse();
-        } catch (error) {
-            console.error('Chat error:', error);
-            this.state.error = error instanceof Error ? error.message : 'An error occurred';
-            this.showError(this.state.error);
-        } finally {
-            this.state.isLoading = false;
-            this.updateLoadingState();
-        }
+    // Focus input when opening
+    if (this.state.isOpen && this.inputField) {
+      setTimeout(() => this.inputField?.focus(), 300);
     }
+  }
 
-    /**
-     * Toggle widget open/closed
-     */
-    private toggleWidget(): void {
-        this.state.isOpen = !this.state.isOpen;
-        this.updateWidgetState();
-
-        // Focus input when opening
-        if (this.state.isOpen && this.inputField) {
-            setTimeout(() => this.inputField?.focus(), 300);
-        }
+  /**
+   * Update widget UI based on open state
+   */
+  private updateWidgetState(): void {
+    if (this.chatContainer && this.toggleButton) {
+      if (this.state.isOpen) {
+        this.chatContainer.classList.add('open');
+        this.toggleButton.innerHTML = '✕';
+      } else {
+        this.chatContainer.classList.remove('open');
+        this.toggleButton.innerHTML = '💬';
+      }
     }
+  }
 
-    /**
-     * Update widget UI based on open state
-     */
-    private updateWidgetState(): void {
-        if (this.chatContainer && this.toggleButton) {
-            if (this.state.isOpen) {
-                this.chatContainer.classList.add('open');
-                this.toggleButton.innerHTML = '✕';
-            } else {
-                this.chatContainer.classList.remove('open');
-                this.toggleButton.innerHTML = '💬';
-            }
-        }
-    }
-
-    /**
-     * Stream chat response from the API
-     */
-    private async streamChatResponse(): Promise<void> {
-        // Show loading indicator
-        const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'message assistant';
-        loadingDiv.innerHTML = `
+  /**
+   * Stream chat response from the API
+   */
+  private async streamChatResponse(): Promise<void> {
+    // Show loading indicator
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'message assistant';
+    loadingDiv.innerHTML = `
       <div class="message-label">AI Assistant</div>
       <div class="message-content">
         <div class="loading-indicator">
@@ -782,135 +782,135 @@ class AIAgentWidget extends HTMLElement {
         </div>
       </div>
     `;
-        this.messagesContainer?.appendChild(loadingDiv);
-        this.scrollToBottom();
+    this.messagesContainer?.appendChild(loadingDiv);
+    this.scrollToBottom();
 
-        try {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages: this.state.messages }),
-            });
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: this.state.messages }),
+      });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-            // Remove loading indicator
-            loadingDiv.remove();
+      // Remove loading indicator
+      loadingDiv.remove();
 
-            // Create assistant message placeholder
-            const assistantMessage: ChatMessage = { role: 'assistant', content: '' };
-            this.state.messages.push(assistantMessage);
+      // Create assistant message placeholder
+      const assistantMessage: ChatMessage = { role: 'assistant', content: '' };
+      this.state.messages.push(assistantMessage);
 
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message assistant';
-            messageDiv.innerHTML = `
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'message assistant';
+      messageDiv.innerHTML = `
         <div class="message-label">AI Assistant</div>
         <div class="message-content"></div>
       `;
-            this.messagesContainer?.appendChild(messageDiv);
-            const contentDiv = messageDiv.querySelector('.message-content') as HTMLDivElement;
+      this.messagesContainer?.appendChild(messageDiv);
+      const contentDiv = messageDiv.querySelector('.message-content') as HTMLDivElement;
 
-            // Process streaming response
-            const reader = response.body?.getReader();
-            const decoder = new TextDecoder();
+      // Process streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
 
-            if (!reader) {
-                throw new Error('No response body reader available');
+      if (!reader) {
+        throw new Error('No response body reader available');
+      }
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') {
+              break;
             }
 
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                const chunk = decoder.decode(value, { stream: true });
-                const lines = chunk.split('\n');
-
-                for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        const data = line.slice(6);
-                        if (data === '[DONE]') {
-                            break;
-                        }
-
-                        try {
-                            const parsed = JSON.parse(data);
-                            if (parsed.content) {
-                                assistantMessage.content += parsed.content;
-                                // Render markdown in real-time for assistant messages
-                                contentDiv.innerHTML = this.md.render(assistantMessage.content);
-                                this.scrollToBottom();
-                            }
-                        } catch (e) {
-                            // Ignore JSON parse errors for partial chunks
-                        }
-                    }
-                }
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.content) {
+                assistantMessage.content += parsed.content;
+                // Render markdown in real-time for assistant messages
+                contentDiv.innerHTML = this.md.render(assistantMessage.content);
+                this.scrollToBottom();
+              }
+            } catch (e) {
+              // Ignore JSON parse errors for partial chunks
             }
-
-            // Save final state
-            this.saveStateToStorage();
-
-        } catch (error) {
-            loadingDiv.remove();
-            throw error;
+          }
         }
+      }
+
+      // Save final state
+      this.saveStateToStorage();
+
+    } catch (error) {
+      loadingDiv.remove();
+      throw error;
     }
+  }
 
-    /**
-     * Update UI based on loading state
-     */
-    private updateLoadingState(): void {
-        if (this.inputField && this.sendButton) {
-            this.inputField.disabled = this.state.isLoading;
-            this.sendButton.disabled = this.state.isLoading;
-            this.sendButton.textContent = this.state.isLoading ? 'Sending...' : 'Send';
-        }
+  /**
+   * Update UI based on loading state
+   */
+  private updateLoadingState(): void {
+    if (this.inputField && this.sendButton) {
+      this.inputField.disabled = this.state.isLoading;
+      this.sendButton.disabled = this.state.isLoading;
+      this.sendButton.textContent = this.state.isLoading ? 'Sending...' : 'Send';
     }
+  }
 
-    /**
-     * Show error message
-     */
-    private showError(message: string): void {
-        if (!this.messagesContainer) return;
+  /**
+   * Show error message
+   */
+  private showError(message: string): void {
+    if (!this.messagesContainer) return;
 
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message';
-        errorDiv.textContent = `Error: ${message}`;
-        this.messagesContainer.appendChild(errorDiv);
-        this.scrollToBottom();
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = `Error: ${message}`;
+    this.messagesContainer.appendChild(errorDiv);
+    this.scrollToBottom();
 
-        // Auto-remove after 5 seconds
-        setTimeout(() => errorDiv.remove(), 5000);
+    // Auto-remove after 5 seconds
+    setTimeout(() => errorDiv.remove(), 5000);
+  }
+
+  /**
+   * Clear chat history
+   */
+  private clearHistory(): void {
+    this.state.messages = [];
+    this.saveStateToStorage();
+    this.renderMessages();
+  }
+
+  /**
+   * Scroll to bottom of messages
+   */
+  private scrollToBottom(): void {
+    if (this.messagesContainer) {
+      this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
     }
+  }
 
-    /**
-     * Clear chat history
-     */
-    private clearHistory(): void {
-        this.state.messages = [];
-        this.saveStateToStorage();
-        this.renderMessages();
-    }
-
-    /**
-     * Scroll to bottom of messages
-     */
-    private scrollToBottom(): void {
-        if (this.messagesContainer) {
-            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
-        }
-    }
-
-    /**
-     * Escape HTML to prevent XSS
-     */
-    private escapeHtml(text: string): string {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
+  /**
+   * Escape HTML to prevent XSS
+   */
+  private escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
 }
 
 // Register the custom element
